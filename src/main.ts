@@ -4,6 +4,7 @@ import WebSocket from "ws";
 import { AuctionRepositoryDatabase } from "./AuctionRepository";
 import { BidRepositoryDatabase } from "./BidRepository";
 import { PgPromiseAdapter } from "./DatabaseConnection";
+import CreateAuction from "./CreateAuction";
 
 const app = express();
 app.use(express.json());
@@ -18,16 +19,13 @@ wss.on("connection", (ws) => {
 const connectionDatabase = new PgPromiseAdapter();
 const auctionRepository = new AuctionRepositoryDatabase(connectionDatabase);
 const bidRepository = new BidRepositoryDatabase(connectionDatabase);
+const createAuction = new CreateAuction(auctionRepository);
 
 app.post("/auctions", async (req: Request, res: Response) => {
-  const auction = req.body;
-  auction.auctionId = crypto.randomUUID();
+  const input = req.body;
+  const output = await createAuction.execute(input);
 
-  await auctionRepository.save(auction);
-
-  res.json({
-    auctionId: auction.auctionId,
-  });
+  res.json(output);
 });
 
 app.post("/bids", async (req: Request, res: Response) => {
