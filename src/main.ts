@@ -1,9 +1,9 @@
-import express, { NextFunction, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import crypto from "crypto";
-import pgp from "pg-promise";
 import WebSocket from "ws";
 import { AuctionRepositoryDatabase } from "./AuctionRepository";
 import { BidRepositoryDatabase } from "./BidRepository";
+import { PgPromiseAdapter } from "./DatabaseConnection";
 
 const app = express();
 app.use(express.json());
@@ -15,9 +15,9 @@ wss.on("connection", (ws) => {
   connections.push(ws);
 });
 
-const connection = pgp()("postgres://postgres:123456@localhost:5432/app");
-const auctionRepository = new AuctionRepositoryDatabase();
-const bidRepository = new BidRepositoryDatabase();
+const connectionDatabase = new PgPromiseAdapter();
+const auctionRepository = new AuctionRepositoryDatabase(connectionDatabase);
+const bidRepository = new BidRepositoryDatabase(connectionDatabase);
 
 app.post("/auctions", async (req: Request, res: Response) => {
   const auction = req.body;
@@ -34,10 +34,7 @@ app.post("/bids", async (req: Request, res: Response) => {
   const bid = req.body;
   bid.bidId = crypto.randomUUID();
 
-  const [auction] = await connection.query(
-    "select * from branas.auction where auction_id = $1",
-    [bid.auctionId]
-  );
+  const auction = await auctionRepository.get(bid.auctionId);
 
   if (!auction) throw new Error("Auction not found");
 
@@ -78,10 +75,7 @@ app.get("/auctions/:auctionId", async (req: Request, res: Response) => {
   const auction = await auctionRepository.get(auctionId);
   if (!auction) throw new Error("Auction not found");
 
-  const [highestBid] = await connection.query(
-    "select * from branas.bid where auction_id = $1 order by amount desc limit 1",
-    [auctionId]
-  );
+  const highestBid = await bidRepository.getHighestBidByAuctionId(auctionId);
 
   res.json({
     highestBid,

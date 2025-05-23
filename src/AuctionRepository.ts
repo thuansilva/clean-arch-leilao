@@ -1,16 +1,14 @@
-import pgp from "pg-promise";
+import DatabaseConnection from "./DatabaseConnection";
 export default interface AuctionRepository {
   save(auction: any): Promise<void>;
   get(auctionId: string): Promise<any>;
 }
 
 export class AuctionRepositoryDatabase implements AuctionRepository {
-  constructor() {}
+  constructor(readonly connection: DatabaseConnection) {}
 
   async save(auction: any): Promise<void> {
-    const connection = pgp()("postgres://postgres:123456@localhost:5432/app");
-
-    await connection.query(
+    await this.connection.query(
       "insert into branas.auction(auction_id, start_date,end_date, min_increment, start_amount) values ($1, $2, $3, $4, $5)",
       [
         auction.auctionId,
@@ -20,20 +18,14 @@ export class AuctionRepositoryDatabase implements AuctionRepository {
         auction.startAmount,
       ]
     );
-
-    await connection.$pool.end();
   }
 
   async get(auctionId: string): Promise<any> {
-    const connection = pgp()("postgres://postgres:123456@localhost:5432/app");
-
-    const [auction] = await connection.query(
+    const [auction] = await this.connection.query(
       "select * from branas.auction where auction_id = $1",
       [auctionId]
     );
 
     return auction;
-
-    await connection.$pool.end();
   }
 }
