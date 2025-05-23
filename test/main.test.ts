@@ -138,7 +138,7 @@ test("Nao deve ter lance menor que o anterior", async () => {
     auctionId: outputAuction.auctionId,
     customer: "a",
     amount: 1100,
-    date: "2025-03-01T12:00:00Z",
+    date: "2025-03-01T11:00:00Z",
   };
 
   await axios.post("http://localhost:3000/bids", inputBid1);
@@ -147,7 +147,7 @@ test("Nao deve ter lance menor que o anterior", async () => {
     auctionId: outputAuction.auctionId,
     customer: "b",
     amount: 1000,
-    date: "2025-03-01T12:30:00Z",
+    date: "2025-03-01T11:30:00Z",
   };
 
   const responseCreateBid2 = await axios.post(
@@ -180,7 +180,7 @@ test("Nao deveter lance seguido pelo mesmo cliente", async () => {
     auctionId: outputAuction.auctionId,
     customer: "a",
     amount: 1200,
-    date: "2025-03-01T12:00:00Z",
+    date: "2025-03-01T11:00:00Z",
   };
 
   await axios.post("http://localhost:3000/bids", inputBid1);
@@ -189,7 +189,7 @@ test("Nao deveter lance seguido pelo mesmo cliente", async () => {
     auctionId: outputAuction.auctionId,
     customer: "a",
     amount: 1300,
-    date: "2025-03-01T12:30:00Z",
+    date: "2025-03-01T11:30:00Z",
   };
 
   const responseCreateBid2 = await axios.post(
