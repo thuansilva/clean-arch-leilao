@@ -3,7 +3,7 @@ export default class Bid {
     public bidId: string,
     public auctionId: string,
     public customer: string,
-    public amount: string,
+    public amount: number,
     public date: Date
   ) {}
 }

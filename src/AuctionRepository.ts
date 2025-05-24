@@ -1,7 +1,8 @@
+import Auction from "./Auction";
 import DatabaseConnection from "./DatabaseConnection";
 export default interface AuctionRepository {
   save(auction: any): Promise<void>;
-  get(auctionId: string): Promise<any>;
+  get(auctionId: string): Promise<Auction>;
 }
 
 export class AuctionRepositoryDatabase implements AuctionRepository {
@@ -20,12 +21,20 @@ export class AuctionRepositoryDatabase implements AuctionRepository {
     );
   }
 
-  async get(auctionId: string): Promise<any> {
+  async get(auctionId: string): Promise<Auction> {
     const [auction] = await this.connection.query(
       "select * from branas.auction where auction_id = $1",
       [auctionId]
     );
 
-    return auction;
+    if (!auction) throw new Error("Auction not found");
+
+    return new Auction(
+      auction.auction_id,
+      auction.start_date,
+      auction.end_date,
+      auction.min_increment,
+      auction.start_amount
+    );
   }
 }

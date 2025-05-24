@@ -27,19 +27,7 @@ export default class CreateBid {
       bid.auctionId
     );
 
-    if (bid.date.getTime() > auction.end_date.getTime()) {
-      throw new Error("Auction is not open");
-    }
-
-    if (highestBid && highestBid.amount > bid.amount) {
-      throw new Error("Bid amount must be greater than the last bid");
-    }
-
-    if (highestBid && highestBid.customer === bid.customer) {
-      throw new Error(
-        "Auction does not accept sequencial bids from the same customer"
-      );
-    }
+    auction.validateBid(bid, highestBid);
 
     await this.bidRepository.save(bid);
 
@@ -51,10 +39,9 @@ export default class CreateBid {
 }
 
 type Input = {
-  bidId: string;
   auctionId: string;
   customer: string;
-  amount: string;
+  amount: number;
   date: Date;
 };
 
