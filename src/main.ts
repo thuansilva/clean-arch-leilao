@@ -6,6 +6,7 @@ import { PgPromiseAdapter } from "./DatabaseConnection";
 import CreateAuction from "./CreateAuction";
 import CreateBid from "./CreateBid";
 import GetAuctions from "./GetAuctions";
+import { ExpressAdapter } from "./HttpServer";
 
 const app = express();
 app.use(express.json());
@@ -23,36 +24,37 @@ const bidRepository = new BidRepositoryDatabase(connectionDatabase);
 const createAuction = new CreateAuction(auctionRepository);
 const createBid = new CreateBid(auctionRepository, bidRepository);
 const getAuctions = new GetAuctions(auctionRepository, bidRepository);
+const httpServer = new ExpressAdapter();
 
-app.post("/auctions", async (req: Request, res: Response) => {
-  const input = req.body;
+httpServer.register("post", "/auctions", async (params: any, body: any) => {
+  const input = body;
 
   input.startDate = new Date(input.startDate);
   input.endDate = new Date(input.endDate);
   const output = await createAuction.execute(input);
-  res.json(output);
+  return output;
 });
 
-app.post("/bids", async (req: Request, res: Response) => {
-  const input = req.body;
+httpServer.register("post", "/bids", async (params: any, body: any) => {
+  const input = body;
   input.date = new Date(input.date);
 
-  try {
-    const output = await createBid.execute(input);
-    res.json(output);
-    return;
-  } catch (e: any) {
-    res.status(422).json({ error: e.message });
-    return;
+  const output = await createBid.execute(input);
+  return output;
+});
+
+httpServer.register(
+  "get",
+  "/auctions/:auctionId",
+  async (params: any, body: any) => {
+    const auctionId = params.auctionId;
+
+    const output = await getAuctions.execute(auctionId);
+    return output;
   }
-});
+);
 
-app.get("/auctions/:auctionId", async (req: Request, res: Response) => {
-  const auctionId = req.params.auctionId;
-
-  const output = await getAuctions.execute(auctionId);
-  res.json(output);
-});
+httpServer.listen(3000);
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");

@@ -79,7 +79,6 @@ test("Deve criar um leilao e dar três lances", async () => {
   );
 
   const outputGetAuction = responseGetAuction.data;
-  // console.log("outputGetAuction", outputGetAuction);
   expect(outputGetAuction.highestBid.customer).toBe("c");
   expect(outputGetAuction.highestBid.amount).toBe("1100");
 
